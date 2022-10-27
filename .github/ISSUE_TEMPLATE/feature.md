@@ -15,6 +15,3 @@ assignees: ''
 
 ### 예상 MD
 <!--구현에 소요될 MD를 예상해서 적어주세요-->
-
-**Additional context**
-Add any other context or screenshots about the feature request here.
