@@ -1,5 +1,5 @@
 interface VCoinProps {
-  amount: number;
+  amount?: number;
 }
 
 function VCoin({ amount = 10 }: VCoinProps) {
