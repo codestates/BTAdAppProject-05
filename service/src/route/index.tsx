@@ -6,12 +6,7 @@ const Router = () => {
   return useRoutes([
     {
       path: '/',
-      children: [
-        {
-          path: '/home',
-          element: <Home />
-        }
-      ]
+      element: <Home />
     },
     {
       path: '*',
