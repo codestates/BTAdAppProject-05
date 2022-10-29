@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { Card, checkScoreResult, getCard, getScore } from '@/components/board/utils/card';
 import { DUMMY_CARDS } from '@/dummy/test';
 
-type STEP = 'BET' | 'DISPENSING' | 'SELECT' | 'REVEAL';
+export type Step = 'BET' | 'DISPENSING' | 'SELECT' | 'REVEAL';
 
 const ETHER_UNIT = 'Gwei';
 
@@ -15,13 +15,14 @@ const ETHER_UNIT = 'Gwei';
 /*eslint-disable*/
 function Home() {
   const [bettingCount, setBettingCount] = useState(1);
-  const [step, setStep] = useState<STEP>('BET');
+  const [step, setStep] = useState<Step>('BET');
   const [dealerDeck, setDealerDeck] = useState<Card[]>([]);
   const [userDeck, setUserDeck] = useState<Card[]>([]);
   const [dealerCards, setDealerCards] = useState<Card[]>([]);
   const [userCards, setUserCards] = useState<Card[]>([]);
   const dealerScore = useMemo(() => getScore(dealerCards, step !== 'REVEAL'), [dealerCards]);
   const userScore = useMemo(() => getScore(userCards), [userCards, step]);
+  console.log(dealerDeck, userDeck);
 
 
   const restart = () => {
@@ -67,7 +68,42 @@ function Home() {
   }
 
   const handleStayBtnClick = () => {
+    setStep('REVEAL');
 
+    const openNewDealerCard = (dealerDeck: Card[], dealerCards: Card[]) => {
+      const currentDealerDeck = dealerDeck.slice();
+      const newDealerCards = [...dealerCards, currentDealerDeck.pop()!];
+      setDealerCards(newDealerCards);
+      setDealerDeck(currentDealerDeck);
+      setTimeout(() => {
+        const dealerResult = checkScoreResult(newDealerCards, true, userScore);
+        if (dealerResult === 'BLACKJACK') {
+          alert("LOSE! :: Dealer's BLACKJACK");
+          restart();
+          return;
+        }
+        if (dealerResult === 'BURST') {
+          alert("WIN! :: Dealer's BURST");
+          restart();
+          return;
+        }
+        if (dealerResult === 'LOSE') {
+          alert("WIN!");
+          restart();
+          return;
+        }
+        if (dealerResult === 'WIN') {
+          alert("LOSE!");
+          restart();
+          return;
+        }
+        openNewDealerCard(currentDealerDeck, newDealerCards);
+      }, 1000) // 애니메이션 시간
+    }
+
+    setTimeout(() => {
+      openNewDealerCard(dealerDeck, dealerCards);
+    }, 500) // 딜러의 덮인 카드가 드러내진 것을 확인하는 시간
   }
 
   const handleHitBtnClick = () => {
@@ -77,12 +113,13 @@ function Home() {
     setUserCards(newUserCards)
     setUserDeck(currentUserDeck);
     setTimeout(() => {
-      if (checkScoreResult(newUserCards) === 'BLACKJACK') {
+      const userResult = checkScoreResult(newUserCards);
+      if (userResult === 'BLACKJACK') {
         alert('BLACKJACK!');
         restart();
         return;
       }
-      if (checkScoreResult(newUserCards) === 'BURST') {
+      if (userResult === 'BURST') {
         alert('BURST!');
         restart();
         return;
@@ -104,6 +141,7 @@ function Home() {
         />
         <div css={tableWrapCss}>
           <VTable
+            step={step}
             dealerCards={dealerCards}
             dealerScore={dealerScore}
             userCards={userCards}
@@ -119,7 +157,7 @@ function Home() {
                 return <button css={buttonCss} onClick={handleBettingBtnClick}>BETTING</button>;
               case 'SELECT':
                 return <>
-                  <button css={buttonCss}>STAY</button>
+                  <button css={buttonCss} onClick={handleStayBtnClick}>STAY</button>
                   <button css={buttonCss} onClick={handleHitBtnClick}>HIT</button>
                 </>
               default:

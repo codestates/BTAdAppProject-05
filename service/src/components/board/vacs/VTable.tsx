@@ -3,21 +3,23 @@ import { css, Theme } from '@emotion/react';
 import VDeck from '@/components/board/vacs/VDeck';
 import VCard from '@/components/board/vacs/VCard';
 import { Card } from '@/components/board/utils/card';
+import { Step } from '@/pages/Home';
 
 interface VTableProps {
+  step: Step;
   dealerCards: Card[];
   dealerScore: number;
   userCards: Card[];
   userScore: number;
 }
 
-function VTable({ dealerCards, userCards, dealerScore, userScore }: VTableProps) {
+function VTable({ step, dealerCards, userCards, dealerScore, userScore }: VTableProps) {
   return (
     <div css={tableCss}>
       <section css={dealerZoneCss}>
         <span className="score">score: {dealerScore}</span>
         {dealerCards.map((info, i) => {
-          if (i === dealerCards.length - 1) {
+          if (step !== 'REVEAL' && i === dealerCards.length - 1) {
             return <VCard cssProps={cardModifierCss(false)} isBack />;
           }
           return <VCard cssProps={cardModifierCss(false)} info={info} />;

@@ -2,7 +2,7 @@ const SUITS = ['♥️', '♣️', '♠️', '♦️'] as const;
 
 const FACES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;
 
-export type ScoreResult = 'BLACKJACK' | 'BURST' | 'CONTINUOUS';
+export type ScoreResult = 'BLACKJACK' | 'BURST' | 'CONTINUOUS' | 'WIN' | 'LOSE';
 
 export interface Card {
   suit: typeof SUITS[number];
@@ -44,13 +44,23 @@ export const getScore = (cards: Card[], ignoresLast: boolean = false) => {
   return score;
 };
 
-export const checkScoreResult = (cards: Card[]): ScoreResult => {
-  const score = getScore(cards);
-  if (score === 21) {
-    return 'BLACKJACK';
+export const checkScoreResult = (cards: Card[], isDealer: boolean = false, userScore?: number): ScoreResult => {
+  if (isDealer && !userScore) {
+    throw new TypeError("Insert 'userScore' argument :: checkScoreResult");
   }
+  const score = getScore(cards);
   if (score > 21) {
     return 'BURST';
   }
+  if (isDealer && score >= 17 && userScore === score) {
+    return 'LOSE';
+  }
+  if (isDealer && score > userScore!) {
+    return 'WIN';
+  }
+  if (score === 21) {
+    return 'BLACKJACK';
+  }
+
   return 'CONTINUOUS';
 };
