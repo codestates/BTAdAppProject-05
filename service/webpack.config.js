@@ -18,7 +18,7 @@ module.exports = {
     new ESLintPlugin(),
     new ForkTsCheckerWebpackPlugin(),
     new CopyWebpackPlugin({
-      patterns: [{ from: 'public/logo30.png' }, { from: 'public/_redirects' }],
+      patterns: [{ from: 'public/assets', to: 'assets' }, { from: 'public/logo30.png' }, { from: 'public/_redirects' }],
     }),
   ],
   devServer: {
