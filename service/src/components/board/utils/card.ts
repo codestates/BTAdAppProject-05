@@ -2,6 +2,8 @@ const SUITS = ['♥️', '♣️', '♠️', '♦️'] as const;
 
 const FACES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;
 
+export type ScoreResult = 'BLACKJACK' | 'BURST' | 'CONTINUOUS';
+
 export interface Card {
   suit: typeof SUITS[number];
   face: typeof FACES[number];
@@ -40,4 +42,15 @@ export const getScore = (cards: Card[], ignoresLast: boolean = false) => {
     return score - 10;
   }
   return score;
+};
+
+export const checkScoreResult = (cards: Card[]): ScoreResult => {
+  const score = getScore(cards);
+  if (score === 21) {
+    return 'BLACKJACK';
+  }
+  if (score > 21) {
+    return 'BURST';
+  }
+  return 'CONTINUOUS';
 };

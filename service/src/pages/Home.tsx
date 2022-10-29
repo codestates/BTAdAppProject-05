@@ -4,7 +4,7 @@ import { css, Theme } from '@emotion/react';
 import VChipBundle from '@/components/board/vacs/VChipBundle';
 import VChips from '@/components/board/vacs/VChips';
 import { useMemo, useState } from 'react';
-import { Card, getCard, getScore } from '@/components/board/utils/card';
+import { Card, checkScoreResult, getCard, getScore } from '@/components/board/utils/card';
 import { DUMMY_CARDS } from '@/dummy/test';
 
 type STEP = 'BET' | 'DISPENSING' | 'SELECT' | 'REVEAL';
@@ -22,6 +22,16 @@ function Home() {
   const [userCards, setUserCards] = useState<Card[]>([]);
   const dealerScore = useMemo(() => getScore(dealerCards, step !== 'REVEAL'), [dealerCards]);
   const userScore = useMemo(() => getScore(userCards), [userCards, step]);
+
+
+  const restart = () => {
+    setBettingCount(1);
+    setStep('BET');
+    setDealerDeck([]);
+    setUserDeck([]);
+    setDealerCards([]);
+    setUserCards([]);
+  }
 
   const handleChipBundleClick = () => {
     if (step !== 'BET') return;
@@ -56,6 +66,32 @@ function Home() {
     }
   }
 
+  const handleStayBtnClick = () => {
+
+  }
+
+  const handleHitBtnClick = () => {
+    setStep('DISPENSING');
+    const currentUserDeck = userDeck.slice();
+    const newUserCards = [...userCards, currentUserDeck.pop()!];
+    setUserCards(newUserCards)
+    setUserDeck(currentUserDeck);
+    setTimeout(() => {
+      if (checkScoreResult(newUserCards) === 'BLACKJACK') {
+        alert('BLACKJACK!');
+        restart();
+        return;
+      }
+      if (checkScoreResult(newUserCards) === 'BURST') {
+        alert('BURST!');
+        restart();
+        return;
+      }
+      setStep('SELECT');
+    }, 1000) // 애니메이션 시간
+  }
+
+
   return (
     <div css={homeWrapCss}>
       <main css={tableAreaCss}>
@@ -84,7 +120,7 @@ function Home() {
               case 'SELECT':
                 return <>
                   <button css={buttonCss}>STAY</button>
-                  <button css={buttonCss}>HIT</button>
+                  <button css={buttonCss} onClick={handleHitBtnClick}>HIT</button>
                 </>
               default:
                 return <></>
