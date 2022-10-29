@@ -1,13 +1,15 @@
 /** @jsxImportSource @emotion/react */
 import { css, SerializedStyles, Theme } from '@emotion/react';
+import { MouseEventHandler } from 'react';
 
 interface VChipBundleProps {
   amountPerChip?: number;
   cssProps?: SerializedStyles;
+  onClick: MouseEventHandler;
 }
 
-function VChipBundle({ amountPerChip = 10, cssProps }: VChipBundleProps) {
-  return <span css={[theme => chipBundleCss(theme, amountPerChip), cssProps]} />;
+function VChipBundle({ amountPerChip = 10, cssProps, onClick }: VChipBundleProps) {
+  return <span css={[theme => chipBundleCss(theme, amountPerChip), cssProps]} onClick={onClick} />;
 }
 
 const chipBundleCss = (theme: Theme, amountPerChip: number) => css`

@@ -21,7 +21,15 @@ const chipCss = (theme: Theme) => css`
   align-items: center;
   width: 121px;
   height: 86px;
+  cursor: pointer;
   background: url('/assets/coin-chip.png') center/70% no-repeat;
+
+  user-select: none;
+  -webkit-user-drag: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+
   & > span {
     color: ${theme.color.black900};
     position: absolute;

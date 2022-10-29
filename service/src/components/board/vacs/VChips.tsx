@@ -1,19 +1,22 @@
 /** @jsxImportSource @emotion/react */
 import VChip from '@/components/board/vacs/VChip';
 import { css, SerializedStyles } from '@emotion/react';
+import { MouseEventHandler } from 'react';
 
 interface VChipsProps {
-  cssProps: SerializedStyles;
   count: number;
+  cssProps?: SerializedStyles;
+  chipCssProps?: SerializedStyles;
+  onClick: MouseEventHandler;
 }
 
-function VChips({ cssProps, count }: VChipsProps) {
+function VChips({ cssProps, chipCssProps, count, onClick }: VChipsProps) {
   return (
-    <div css={[chipsCss, cssProps]}>
+    <div css={[chipsCss, cssProps]} onClick={onClick}>
       {Array(count)
         .fill(0)
         .map((_, i) => (
-          <VChip cssProps={chipModifierCss(i)} />
+          <VChip cssProps={{ ...chipCssProps, ...chipModifierCss(i, chipCssProps) }} />
         ))}
     </div>
   );
@@ -24,8 +27,12 @@ const chipsCss = css`
   position: relative;
 `;
 
-const chipModifierCss = (offset: number) => css`
-  transform: translate(0, ${-13 * offset}px);
-`;
+const chipModifierCss = (offset: number, cssProps?: SerializedStyles) =>
+  css(
+    `
+  top: ${-13 * offset}px;
+`,
+    [cssProps],
+  );
 
 export default VChips;

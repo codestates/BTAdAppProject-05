@@ -25,6 +25,7 @@ const deckCss = css`
 `;
 
 const cardModifierCss = (offset: number) => css`
+  position: absolute;
   transform: translate(-${offset * 0.7}px, ${-70 + offset}px);
 `;
 
