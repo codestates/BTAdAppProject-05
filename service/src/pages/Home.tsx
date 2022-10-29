@@ -3,11 +3,11 @@ import VTable from '@/components/board/vacs/VTable';
 import { css, Theme } from '@emotion/react';
 import VChipBundle from '@/components/board/vacs/VChipBundle';
 import VChips from '@/components/board/vacs/VChips';
-import { useEffect, useState } from 'react';
-import { Card, getCard } from '@/components/board/utils/card';
+import { useMemo, useState } from 'react';
+import { Card, getCard, getScore } from '@/components/board/utils/card';
 import { DUMMY_CARDS } from '@/dummy/test';
 
-type STEP = 'BET' | 'DISPENSING' | 'SELECT';
+type STEP = 'BET' | 'DISPENSING' | 'SELECT' | 'REVEAL';
 
 const ETHER_UNIT = 'Gwei';
 
@@ -20,21 +20,8 @@ function Home() {
   const [userDeck, setUserDeck] = useState<Card[]>([]);
   const [dealerCards, setDealerCards] = useState<Card[]>([]);
   const [userCards, setUserCards] = useState<Card[]>([]);
-
-  useEffect(() => {
-    const dealerDeck = DUMMY_CARDS.DEALER.map(getCard);
-    const userDeck = DUMMY_CARDS.USER.map(getCard);
-    Array(2).fill(0).forEach(() => {
-      setDealerCards(prev => [...prev, dealerDeck.pop()!]);
-      setUserCards(prev => [...prev, userDeck.pop()!]);
-    })
-    setDealerDeck(dealerDeck);
-    setUserDeck(userDeck);
-
-    setTimeout(() => {
-      setUserCards(prev => [...prev, userDeck.pop()!]);
-    }, 1000)
-  }, [])
+  const dealerScore = useMemo(() => getScore(dealerCards, step !== 'REVEAL'), [dealerCards]);
+  const userScore = useMemo(() => getScore(userCards), [userCards, step]);
 
   const handleChipBundleClick = () => {
     if (step !== 'BET') return;
@@ -65,6 +52,7 @@ function Home() {
       })
       setDealerDeck(dealerDeck);
       setUserDeck(userDeck);
+      setStep('SELECT');
     }
   }
 
@@ -79,7 +67,12 @@ function Home() {
           onClick={handleChipsForBettingClick}
         />
         <div css={tableWrapCss}>
-          <VTable dealerCards={dealerCards} userCards={userCards}/>
+          <VTable
+            dealerCards={dealerCards}
+            dealerScore={dealerScore}
+            userCards={userCards}
+            userScore={userScore}
+          />
         </div>
       </main>
       <div css={buttonWrapCss}>
@@ -168,7 +161,9 @@ const tableWrapCss = css`
 `;
 
 const buttonWrapCss = css`
+  display: flex;
   height: 63px;
+  gap: 20px;
 `
 
 const buttonCss = (theme: Theme) => css`

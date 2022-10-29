@@ -6,13 +6,16 @@ import { Card } from '@/components/board/utils/card';
 
 interface VTableProps {
   dealerCards: Card[];
+  dealerScore: number;
   userCards: Card[];
+  userScore: number;
 }
 
-function VTable({ dealerCards, userCards }: VTableProps) {
+function VTable({ dealerCards, userCards, dealerScore, userScore }: VTableProps) {
   return (
     <div css={tableCss}>
       <section css={dealerZoneCss}>
+        <span className="score">score: {dealerScore}</span>
         {dealerCards.map((info, i) => {
           if (i === dealerCards.length - 1) {
             return <VCard cssProps={cardModifierCss(false)} isBack />;
@@ -24,6 +27,7 @@ function VTable({ dealerCards, userCards }: VTableProps) {
         <VDeck amount={12} isBack />
       </section>
       <section css={userZoneCss}>
+        <span className="score">score: {userScore}</span>
         {userCards.map(info => (
           <VCard cssProps={cardModifierCss(true)} info={info} />
         ))}
@@ -32,13 +36,22 @@ function VTable({ dealerCards, userCards }: VTableProps) {
   );
 }
 
-const dealerZoneCss = css`
+const dealerZoneCss = (theme: Theme) => css`
   display: flex;
+  position: relative;
   justify-content: center;
   align-items: center;
   gap: 20px;
   width: 100%;
   height: 150px;
+
+  .score {
+    position: absolute;
+    top: -40px;
+    left: 10px;
+    font-size: 16px;
+    color: ${theme.color.black900};
+  }
 `;
 
 const centerAreaCss = css`
@@ -50,14 +63,22 @@ const centerAreaCss = css`
   gap: 50px;
 `;
 
-const userZoneCss = css`
+const userZoneCss = (theme: Theme) => css`
   display: flex;
+  position: relative;
   justify-content: center;
   align-items: center;
   gap: 20px;
   width: 100%;
   height: 150px;
-  transition: all 2s;
+
+  .score {
+    position: absolute;
+    bottom: -40px;
+    left: 10px;
+    font-size: 16px;
+    color: ${theme.color.black900};
+  }
 `;
 
 const tableCss = (theme: Theme) => css`

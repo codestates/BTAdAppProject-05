@@ -12,3 +12,32 @@ export const getCard = (cardIndex: number): Card => {
     face: FACES[cardIndex % 13],
   };
 };
+
+export const getScore = (cards: Card[], ignoresLast: boolean = false) => {
+  let includesA = false;
+  const score = cards.reduce<number>((acc, { face }, idx) => {
+    if (ignoresLast && idx === cards.length - 1) {
+      return acc;
+    }
+    let cardValue;
+    switch (face) {
+      case 'A':
+        includesA = true;
+        cardValue = 11;
+        break;
+      case 'K':
+      case 'Q':
+      case 'J':
+        cardValue = 10;
+        break;
+      default:
+        cardValue = Number(face);
+    }
+    return acc + cardValue;
+  }, 0);
+
+  if (includesA && score > 21) {
+    return score - 10;
+  }
+  return score;
+};
