@@ -20,8 +20,8 @@ function Home() {
   const [userDeck, setUserDeck] = useState<Card[]>([]);
   const [dealerCards, setDealerCards] = useState<Card[]>([]);
   const [userCards, setUserCards] = useState<Card[]>([]);
-  const dealerScore = useMemo(() => getScore(dealerCards, step !== 'REVEAL'), [dealerCards]);
-  const userScore = useMemo(() => getScore(userCards), [userCards, step]);
+  const dealerScore = useMemo(() => getScore(dealerCards, step !== 'REVEAL'), [dealerCards, step]);
+  const userScore = useMemo(() => getScore(userCards), [userCards]);
   console.log(dealerDeck, userDeck);
 
 
@@ -67,41 +67,49 @@ function Home() {
     }
   }
 
+  const openNewDealerCard = (dealerDeck: Card[], dealerCards: Card[]) => {
+    const currentDealerDeck = dealerDeck.slice();
+    const newDealerCards = [...dealerCards, currentDealerDeck.pop()!];
+    setDealerCards(newDealerCards);
+    setDealerDeck(currentDealerDeck);
+    setTimeout(() => {
+      if (checkIsFinishedInOpeningDealerCard(newDealerCards)) {
+        restart();
+        return;
+      }
+      openNewDealerCard(currentDealerDeck, newDealerCards);
+    }, 1000) // 애니메이션 시간
+  }
+
+  const checkIsFinishedInOpeningDealerCard = (dealerCards: Card[]) => {
+    const dealerResult = checkScoreResult(dealerCards, true, userScore);
+    if (dealerResult === 'BLACKJACK') {
+      alert("LOSE! :: Dealer's BLACKJACK");
+      return 1;
+    }
+    if (dealerResult === 'BURST') {
+      alert("WIN! :: Dealer's BURST");
+      return 1;
+    }
+    if (dealerResult === 'LOSE') {
+      alert("WIN!");
+      return 1;
+    }
+    if (dealerResult === 'WIN') {
+      alert("LOSE!");
+      return 1;
+    }
+    return 0;
+  }
+
+
   const handleStayBtnClick = () => {
     setStep('REVEAL');
-
-    const openNewDealerCard = (dealerDeck: Card[], dealerCards: Card[]) => {
-      const currentDealerDeck = dealerDeck.slice();
-      const newDealerCards = [...dealerCards, currentDealerDeck.pop()!];
-      setDealerCards(newDealerCards);
-      setDealerDeck(currentDealerDeck);
-      setTimeout(() => {
-        const dealerResult = checkScoreResult(newDealerCards, true, userScore);
-        if (dealerResult === 'BLACKJACK') {
-          alert("LOSE! :: Dealer's BLACKJACK");
-          restart();
-          return;
-        }
-        if (dealerResult === 'BURST') {
-          alert("WIN! :: Dealer's BURST");
-          restart();
-          return;
-        }
-        if (dealerResult === 'LOSE') {
-          alert("WIN!");
-          restart();
-          return;
-        }
-        if (dealerResult === 'WIN') {
-          alert("LOSE!");
-          restart();
-          return;
-        }
-        openNewDealerCard(currentDealerDeck, newDealerCards);
-      }, 1000) // 애니메이션 시간
-    }
-
     setTimeout(() => {
+      if (checkIsFinishedInOpeningDealerCard(dealerCards)) {
+        restart();
+        return;
+      }
       openNewDealerCard(dealerDeck, dealerCards);
     }, 500) // 딜러의 덮인 카드가 드러내진 것을 확인하는 시간
   }
