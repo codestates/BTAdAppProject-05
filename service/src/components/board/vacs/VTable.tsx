@@ -122,51 +122,51 @@ const cardModifierCss = (isUserCard: boolean) => css`
 
   @keyframes moveCardToUser {
     from {
-      transform: translateY(-100px);
+      transform: translateY(-100px) rotateY(90deg);
     }
     to {
-      transform: traslateY(0px);
+      transform: traslateY(0px) rotateY(0);
     }
   }
-  @-moz-keyframes moveCardToUse {
+  @-moz-keyframes moveCardToUser {
     from {
-      transform: translateY(-100px);
+      transform: translateY(-100px) rotateY(90deg);
     }
     to {
-      transform: traslateY(0px);
+      transform: traslateY(0px) rotateY(0);
     }
   }
-  @-webkit-keyframes moveCardToUse {
+  @-webkit-keyframes moveCardToUser {
     from {
-      transform: translateY(-100px);
+      transform: translateY(-100px) rotateY(90deg);
     }
     to {
-      transform: traslateY(0px);
+      transform: traslateY(0px) rotateY(0);
     }
   }
 
   @keyframes moveCardToDealer {
     from {
-      transform: translateY(100px);
+      transform: translateY(-100px) rotateY(90deg);
     }
     to {
-      transform: traslateY(0px);
+      transform: traslateY(0px) rotateY(0);
     }
   }
   @-moz-keyframes moveCardToDealer {
     from {
-      transform: translateY(100px);
+      transform: translateY(-100px) rotateY(90deg);
     }
     to {
-      transform: traslateY(0px);
+      transform: traslateY(0px) rotateY(0);
     }
   }
   @-webkit-keyframes moveCardToDealer {
     from {
-      transform: translateY(100px);
+      transform: translateY(-100px) rotateY(90deg);
     }
     to {
-      transform: traslateY(0px);
+      transform: traslateY(0px) rotateY(0);
     }
   }
 `;
