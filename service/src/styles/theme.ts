@@ -1,8 +1,8 @@
 const theme = {
   color: {
-    'black-300': '#979797',
-    'black-600': '#464646',
-    'black-900': '#000000',
+    black300: '#979797',
+    black600: '#464646',
+    black900: '#000000',
   },
 } as const;
 
