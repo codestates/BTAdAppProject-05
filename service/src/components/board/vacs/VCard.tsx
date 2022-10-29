@@ -8,14 +8,19 @@ interface VCardProps {
   isBack?: boolean;
 }
 
-function VCard({ cssProps, isBack = false }: VCardProps) {
-  return <span css={[(theme: Theme) => cardCss(theme, isBack), cssProps]} />;
+function VCard({ info, cssProps, isBack = false }: VCardProps) {
+  return (
+    <span css={[(theme: Theme) => cardCss(theme, info?.suit, isBack), cssProps]}>
+      {info && <span>{info.face}</span>}
+    </span>
+  );
 }
 
-const cardCss = (theme: Theme, isBack: boolean) => css`
+const cardCss = (theme: Theme, suit?: Card['suit'], isBack?: boolean) => css`
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
   width: 105px;
   height: 140px;
   box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.9);
@@ -23,7 +28,38 @@ const cardCss = (theme: Theme, isBack: boolean) => css`
   background-color: white;
   ${isBack && 'background: url("/assets/compass.png") white center/60% no-repeat'};
 
-  &::before {
+  & > span {
+    color: ${theme.color.black900};
+    font-size: 50px;
+    z-index: 1;
+
+    &::before {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: block;
+      font-size: 35px;
+      color: ${theme.color.black300};
+      content: '${suit}';
+    }
+
+    &::after {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: block;
+      font-size: 35px;
+      color: ${theme.color.black300};
+      content: '${suit}';
+      transform: rotate(180deg);
+    }
+  }
+
+  &::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: block;
     width: 90px;
     height: 125px;
