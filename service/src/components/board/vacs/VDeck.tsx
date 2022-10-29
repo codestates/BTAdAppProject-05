@@ -1,10 +1,11 @@
 /** @jsxImportSource @emotion/react */
 import VCard from '@/components/board/vacs/VCard';
-import { css } from '@emotion/react';
+import { css, SerializedStyles } from '@emotion/react';
 
 interface VDeckProps {
   amount: number;
   isBack?: boolean;
+  cssProps?: SerializedStyles;
 }
 function VDeck({ amount, isBack = false }: VDeckProps) {
   return (
@@ -20,10 +21,11 @@ function VDeck({ amount, isBack = false }: VDeckProps) {
 
 const deckCss = css`
   position: relative;
+  transform: translate(30px);
 `;
 
 const cardModifierCss = (offset: number) => css`
-  transform: translate(-${offset * 0.7}px, ${offset}px);
+  transform: translate(-${offset * 0.7}px, ${-70 + offset}px);
 `;
 
 export default VDeck;

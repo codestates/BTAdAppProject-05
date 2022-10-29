@@ -15,8 +15,10 @@ function VTable() {
 const centerAreaCss = css`
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
   height: 150px;
+  gap: 50px;
 `;
 
 const tableCss = (theme: Theme) => css`
