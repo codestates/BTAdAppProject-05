@@ -170,7 +170,7 @@ const cardModifierCss = (isUserCard: boolean) => css`
 
   @keyframes moveCardToDealer {
     from {
-      transform: translateY(-100px) rotateY(90deg);
+      transform: translateY(100px) rotateY(90deg);
     }
     to {
       transform: traslateY(0px) rotateY(0);
@@ -178,7 +178,7 @@ const cardModifierCss = (isUserCard: boolean) => css`
   }
   @-moz-keyframes moveCardToDealer {
     from {
-      transform: translateY(-100px) rotateY(90deg);
+      transform: translateY(100px) rotateY(90deg);
     }
     to {
       transform: traslateY(0px) rotateY(0);
@@ -186,7 +186,7 @@ const cardModifierCss = (isUserCard: boolean) => css`
   }
   @-webkit-keyframes moveCardToDealer {
     from {
-      transform: translateY(-100px) rotateY(90deg);
+      transform: translateY(100px) rotateY(90deg);
     }
     to {
       transform: traslateY(0px) rotateY(0);
