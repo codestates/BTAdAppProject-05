@@ -8,15 +8,9 @@ pragma solidity >=0.7.0 <0.9.0;
  * @custom:dev-run-script ./scripts/deploy_with_ethers.ts
  */
 contract BlackJackBet {
-    address _contract = address(this);
-    address _player = msg.sender;
-    uint256 _pBet;
-    string _dMsg;
-    address payable p_player = payable(_player);
-    address payable p_contract = payable(_contract);
-    mapping(address => uint) public playerBetAmount;
+    mapping(address => uint256) public playerBetAmount;
 
-    event completeUserBet(string result, string message, uint256 bet);
+    event completeUserBet(string result, uint256 bet);
     event howMuch(uint256 _value);
 
     // Function to receive Ether. msg.data must be empty
@@ -25,41 +19,36 @@ contract BlackJackBet {
     // Fallback function is called when msg.data is not empty
     fallback() external payable {}
 
+    function getBalance() public view returns (uint256) {
+        return payable(address(this)).balance;
+    }
+
     // 유저가 게임 배팅 시 컨트랙트에 배팅 금액 송금.
     function userBet(uint256 bet) public payable {
-        uint256 betEth;
-        // 유저 배팅을 초기화 해줌
-        _pBet = 0;
-
         // 인수로 들어온 배팅 금액을 세팅
-        betEth = bet;
-        _pBet += betEth;
-
-        _dMsg = "Bet Placed.";
-        // callNow(p_contract);
+        playerBetAmount[msg.sender] = bet;
         callToContract();
     }
 
     // 유저 승리시 컨트랙트에서 유저에게 배팅금액의 2배를 송금
-    function callContractToWinnerUser() public payable {
-        uint256 betEth = _pBet;
-        uint256 callEth = betEth * 2;
-
-        _dMsg = "send Ehter To User.";
-        callNow(p_player, callEth);
+    function callContractToWinnerUser(address _to)
+        public
+        payable
+        returns (uint256)
+    {
+        uint256 amount = playerBetAmount[_to] * 2;
+        callNow(_to, amount);
+        return amount;
     }
 
-    // 송금
-    function callNow(address payable _to, uint256 _value) public payable {
-        (bool sent, ) = _to.call{value: _value, gas: 1000}("");
-        require(sent, "fail send ether.");
-        emit completeUserBet("success", _dMsg, msg.value);
+    function callNow(address _to, uint256 _value) public payable {
+        payable(_to).transfer(_value);
     }
 
     function callToContract() public payable {
         require(msg.sender.balance >= msg.value, "Your Balance is not enough");
         (bool sent, ) = address(this).call{value: msg.value, gas: 1000}("");
         require(sent, "fail send ether.");
-        emit completeUserBet("success", _dMsg, msg.value);
+        emit completeUserBet("success", msg.value);
     }
 }
