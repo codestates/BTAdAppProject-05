@@ -7,13 +7,14 @@ pragma solidity >=0.7.0 <0.9.0;
  * @dev Store & retrieve value in a variable
  * @custom:dev-run-script ./scripts/deploy_with_ethers.ts
  */
-contract BlackJack {
+contract BlackJackBet {
     address _contract = address(this);
     address _player = msg.sender;
     uint256 _pBet;
     string _dMsg;
     address payable p_player = payable(_player);
     address payable p_contract = payable(_contract);
+    mapping(address => uint) public playerBetAmount;
 
     event completeUserBet(string result, string message, uint256 bet);
     event howMuch(uint256 _value);
@@ -56,7 +57,7 @@ contract BlackJack {
     }
 
     function callToContract() public payable {
-        require(msg.sender.balance >= msg.value, "Your Balance is not enought");
+        require(msg.sender.balance >= msg.value, "Your Balance is not enough");
         (bool sent, ) = address(this).call{value: msg.value, gas: 1000}("");
         require(sent, "fail send ether.");
         emit completeUserBet("success", _dMsg, msg.value);
