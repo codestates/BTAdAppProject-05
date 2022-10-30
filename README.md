@@ -40,6 +40,11 @@
 <br/>
 
 # 게임 장면
+### 전체적인 과정 <br/>
+
+https://user-images.githubusercontent.com/67793530/198903360-0dcafd47-fde1-4241-a689-fc2b03cd2046.mov
+
+
 ### 베팅하기 <br/>
 
 https://user-images.githubusercontent.com/67793530/198902155-6f60b1d9-2bdf-4ffc-83ae-8a5b88e7da05.mov
