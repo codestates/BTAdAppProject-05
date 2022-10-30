@@ -67,7 +67,7 @@ function Home() {
       alert('칩을 이용해 배팅 금액을 설정해주세요.');
       return;
     }
-    if (confirm(`${bettingCount * 0.1} ${ETHER_UNIT} 만큼 베팅하여 게임을 시작하시겠습니까?`)) {
+    if (confirm(`${bettingCount * 0.01} ${ETHER_UNIT} 만큼 베팅하여 게임을 시작하시겠습니까?\n(왼쪽의 칩들을 클릭하면 더 베팅할 수 있습니다.)`)) {
       try {
         setStep('LOADING');
         await connectMetaMask();
@@ -172,7 +172,7 @@ function Home() {
       alert(errorAlertMsg);
       return;
     }
-    alert(`승리하여 베팅금액의 두 배인 ${bettingCount * 0.2}ETH 금액을 지갑으로 전송하기 위해 서명을 해주십시오.\n서명 후 지갑을 확인하여 전송받은 금액을 확인해주세요.`);
+    alert(`승리하여 베팅금액의 두 배인 ${bettingCount * 0.02}ETH 금액을 지갑으로 전송하기 위해 서명을 해주십시오.\n서명 후 지갑을 확인하여 전송받은 금액을 확인해주세요.`);
     try {
       await contract!.methods.callContractToWinnerUser('0xFA629b7aa4272d683c7e22E5be5a485B157dC2ff').send({from: '0xFA629b7aa4272d683c7e22E5be5a485B157dC2ff'});
     } catch (error) {
