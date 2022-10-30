@@ -6,6 +6,12 @@ import VChips from '@/components/board/vacs/VChips';
 import { useMemo, useState } from 'react';
 import { Card, checkScoreResult, getCard, getScore } from '@/components/board/utils/card';
 import { DUMMY_CARDS } from '@/dummy/test';
+import { useWeb3React } from '@web3-react/core';
+import { injected } from '@/App';
+import { WALLET_ERROR, WalletError } from '@/constants/errorCode';
+import Web3 from 'web3';
+import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/constants/contract';
+import { Contract } from 'web3-eth-contract';
 
 export type Step = 'BET' | 'DISPENSING' | 'SELECT' | 'REVEAL';
 
@@ -22,8 +28,14 @@ function Home() {
   const [userCards, setUserCards] = useState<Card[]>([]);
   const dealerScore = useMemo(() => getScore(dealerCards, step !== 'REVEAL'), [dealerCards, step]);
   const userScore = useMemo(() => getScore(userCards), [userCards]);
-  console.log(dealerDeck, userDeck);
-
+  const {
+    chainId,
+    account,
+    active,
+    activate,
+    deactivate
+  } = useWeb3React();
+  const [contract, setContract] = useState<Contract | null>(null);
 
   const restart = () => {
     setBettingCount(1);
@@ -48,23 +60,59 @@ function Home() {
     setBettingCount(prev => prev - 1);
   };
 
-  const handleBettingBtnClick = () => {
+  const handleBettingBtnClick = async() => {
     if (bettingCount === 0) {
       alert('칩을 이용해 배팅 금액을 설정해주세요.');
       return;
     }
     if (confirm(`${bettingCount * 10} ${ETHER_UNIT} 만큼 베팅하여 게임을 시작하시겠습니까?`)) {
-      setStep('DISPENSING');
-      const dealerDeck = DUMMY_CARDS.DEALER.map(getCard);
-      const userDeck = DUMMY_CARDS.USER.map(getCard);
-      Array(2).fill(0).forEach(() => {
-        setDealerCards(prev => [...prev, dealerDeck.pop()!]);
-        setUserCards(prev => [...prev, userDeck.pop()!]);
-      })
-      setDealerDeck(dealerDeck);
-      setUserDeck(userDeck);
-      setStep('SELECT');
+      try {
+        await connectMetaMask();
+        console.log(account, chainId);
+        const contract = connectContract();
+        const test = await contract.methods.createDeck().call();
+        console.log(test);
+        bet();
+      } catch (e) {
+        console.error(e);
+      }
     }
+  }
+
+  const connectContract = () => {
+    const web3 = new Web3((window as any).web3.currentProvider);
+    const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+    setContract(contract);
+    return contract;
+  }
+
+  const connectMetaMask = () => {
+    return activate(injected, (error) => {
+      const typedError = error as unknown as WalletError;
+      if (error.name === 'NoEthereumProviderError') {
+        alert('메타마스크 지갑을 설치해주세요.');
+        window.open('https://metamask.io/download.html', '_blank');
+        throw new Error('메타마스크를 설치하여야 합니다.')
+      }
+      if (typedError.code === WALLET_ERROR.USER_REJECT) {
+        alert('지갑 연결이 취소되었습니다.');
+        throw new Error('사용자가 지갑 연결을 취소하였습니다.');
+      }
+      console.log('error');
+    });
+  }
+
+  const bet = () => {
+    setStep('DISPENSING');
+    const dealerDeck = DUMMY_CARDS.DEALER.map(getCard);
+    const userDeck = DUMMY_CARDS.USER.map(getCard);
+    Array(2).fill(0).forEach(() => {
+      setDealerCards(prev => [...prev, dealerDeck.pop()!]);
+      setUserCards(prev => [...prev, userDeck.pop()!]);
+    })
+    setDealerDeck(dealerDeck);
+    setUserDeck(userDeck);
+    setStep('SELECT');
   }
 
   const openNewDealerCard = (dealerDeck: Card[], dealerCards: Card[]) => {
