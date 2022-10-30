@@ -109,14 +109,26 @@ function Home() {
       await contract.methods.playBlackJack().send({ from: account, value: Web3.utils.toWei((bettingCount * 10000000).toString(), 'Gwei')});
       const dealerDeck = (await contract.methods.getDealerCards(account).call()).map(getCard);
       const userDeck = (await contract.methods.getPlayerCards(account).call()).map(getCard);
-      console.log(dealerDeck, userDeck);
+      const dealerCards: Card[] = [];
+      const userCards: Card[] = [];
       Array(2).fill(0).forEach(() => {
-        setDealerCards(prev => [...prev, dealerDeck.pop()!]);
-        setUserCards(prev => [...prev, userDeck.pop()!]);
+        dealerCards.push(dealerDeck.pop()!);
+        userCards.push(userDeck.pop()!);
       })
+      setDealerCards(dealerCards);
+      setUserCards(userCards);
+      setStep('DISPENSING');
       setDealerDeck(dealerDeck);
       setUserDeck(userDeck);
-      setStep('SELECT');
+      setTimeout(async () => {
+        if (checkScoreResult(userCards) === 'BLACKJACK') {
+          alert('BLACKJACK!');
+          await sendRewardToUser(contract);
+          restart();
+          return;
+        }
+        setStep('SELECT');
+      }, 1000)
     } catch (error) {
       const typedError = error as unknown as WalletError;
       if (typedError.code === WALLET_ERROR.USER_REJECT) {
@@ -166,15 +178,16 @@ function Home() {
     return 0;
   }
 
-  const sendRewardToUser = async () => {
+  const sendRewardToUser = async (contractPayLoad?: Contract) => {
     const errorAlertMsg = `상금을 드리는 과정에 오류가 있습니다. 이 문구를 캡처하여 증빙을 남겨주십시오.\n베팅금액: ${bettingCount * 0.1}ETH`;
-    if (!contract) {
+    const currentContract = contractPayLoad || contract;
+    if (!currentContract) {
       alert(errorAlertMsg);
       return;
     }
     alert(`승리하여 베팅금액의 두 배인 ${bettingCount * 0.02}ETH 금액을 지갑으로 전송하기 위해 서명을 해주십시오.\n서명 후 지갑을 확인하여 전송받은 금액을 확인해주세요.`);
     try {
-      await contract!.methods.callContractToWinnerUser('0xFA629b7aa4272d683c7e22E5be5a485B157dC2ff').send({from: '0xFA629b7aa4272d683c7e22E5be5a485B157dC2ff'});
+      await currentContract!.methods.callContractToWinnerUser('0xFA629b7aa4272d683c7e22E5be5a485B157dC2ff').send({from: '0xFA629b7aa4272d683c7e22E5be5a485B157dC2ff'});
     } catch (error) {
       const typedError = error as unknown as WalletError;
       if (typedError.code === WALLET_ERROR.USER_REJECT) {
