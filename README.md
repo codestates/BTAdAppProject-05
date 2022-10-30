@@ -7,7 +7,7 @@
 
 
 # Tomas Jacob Black
-이 게임은 이더(Ether)를 걸고하는 블랙잭 게임 dA입니다.
+이 게임은 이더(Ether)를 걸고 진행하는 탈중앙화 블랙잭 게임입니다.
 단, 다음과 같이 블랙잭 규칙 중 일부가 제거되었습니다.
 ```
 스플릿(Split), 더블다운(Double Down), 인슈어런스(Insurance), 이븐머니(Even Money), 서렌더(Surrender)가 없습니다.
