@@ -2,26 +2,25 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-/**
- * @title Storage
- * @dev Store & retrieve value in a variable
- * @custom:dev-run-script ./scripts/deploy_with_ethers.ts
- */
-contract BlackJack {
+import "contracts/BlackJack_bet.sol";
+
+contract BlackJack is BlackJackBet {
     uint deckSize = 52;
     uint[] deck;
     uint[] dealerCards;
     uint[] playerCards;
     event completeShuffle(string result, string message);
+    event completeAll(string result, string message);
+    mapping(address => uint[]) public playerCardDeckMap;
+    mapping(address => uint[]) public dealerCardDeckMap;
 
-    function createDeck() public returns(uint[] memory){
+    function createDeck() public {
         for (uint i = 0; i < deckSize; i++){
             deck.push(i);
         }
-      return deck;
     }
 
-    function shuffleDeck() external {
+    function shuffleDeck() public {
         for (uint i = 0; i < deck.length; i++) {
             uint n = i + uint(keccak256(abi.encodePacked(block.timestamp))) % (deck.length - i);
             uint temp = deck[n];
@@ -34,25 +33,38 @@ contract BlackJack {
             deck.pop();
             playerCards.push(card);
         }
+        playerCardDeckMap[msg.sender] = playerCards;
 
         for (uint i = 6; i < 12; i++) {
             uint card = deck[deck.length - 1];
             deck.pop();
             dealerCards.push(card);
         }
+        dealerCardDeckMap[msg.sender] = dealerCards;
 
-        emit completeShuffle("success", "Card Deck is Ready!");
+        emit completeShuffle("success", "Card is Ready!");
     }   
 
     function getDealerCards() public view returns (uint[] memory){
-        return dealerCards;
+        return dealerCardDeckMap[msg.sender];
     }
 
     function getPlayerCards() public view returns (uint[] memory){
-        return playerCards;
+        return playerCardDeckMap[msg.sender];
     }
 
     function getDeck() public view returns (uint[] memory){
         return deck;
     }
+
+    function playBlackJack() public payable {
+        uint betAmount = msg.value;
+        address userAddress = msg.sender;
+        userBet(betAmount);
+        playerBetAmount[userAddress] = betAmount;
+        createDeck();
+        shuffleDeck();
+        emit completeAll("success", "Play is Ready!");
+    }
+
 }
