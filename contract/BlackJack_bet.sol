@@ -10,13 +10,12 @@ pragma solidity >=0.7.0 <0.9.0;
 contract BlackJack {
     address _contract = address(this);
     address _player = msg.sender;
-    uint256 _pBet;
+    uint256 _pBet = 10;
     string _dMsg;
     address payable p_player = payable(_player);
     address payable p_contract = payable(_contract);
 
     event completeUserBet(string result, string message, uint256 bet);
-    event completeCallToUser(string result, string message, uint256 bet);
     event howMuch(uint256 _value);
 
     // Function to receive Ether. msg.data must be empty
@@ -37,23 +36,21 @@ contract BlackJack {
 
         _dMsg = "Bet Placed.";
         // callNow(p_contract);
-        // callToContract(p_contract);
-        // emit howMuch(betEth);
-        emit completeUserBet("success", "asdasdasd", bet);
+        callToContract();
     }
 
-    // // 유저 승리시 컨트랙트에서 유저에게 배팅금액의 2배를 송금
-    // function callContractToWinnerUser(uint256 bet) public {
-    //     uint256 betEth = _pBet;
-    //     uint256 callEth = betEth * 2;
+    // 유저 승리시 컨트랙트에서 유저에게 배팅금액의 2배를 송금
+    function callContractToWinnerUser() public payable {
+        uint256 betEth = _pBet;
+        uint256 callEth = betEth * 2;
 
-    //     _dMsg = "send Ehter To User.";
-    //     // callNow(p_contract);
-    // }
+        _dMsg = "send Ehter To User.";
+        callNow(p_player, callEth);
+    }
 
     // 송금
-    function callNow(address payable _to) public payable {
-        (bool sent, ) = _to.call{value: msg.value, gas: 1000}("");
+    function callNow(address payable _to, uint256 _value) public payable {
+        (bool sent, ) = _to.call{value: _value, gas: 1000}("");
         require(sent, "fail send ether.");
         emit completeUserBet("success", _dMsg, msg.value);
     }
@@ -63,23 +60,5 @@ contract BlackJack {
         (bool sent, ) = address(this).call{value: msg.value, gas: 1000}("");
         require(sent, "fail send ether.");
         emit completeUserBet("success", _dMsg, msg.value);
-    }
-
-    function callToContract2(address payable _to) public payable {
-        require(msg.sender.balance >= msg.value, "Your Balance is not enought");
-        (bool sent, ) = _to.call{value: msg.value, gas: 1000}("");
-        require(sent, "fail send ether.");
-        emit completeUserBet("success", _dMsg, msg.value);
-    }
-
-    function callToUser() public payable {
-        (bool sent, ) = p_player.call{value: msg.value, gas: 1000}("");
-        require(sent, "fail send ether.");
-        _dMsg = "complete send To User";
-        emit completeCallToUser("success", _dMsg, msg.value);
-    }
-
-    function callToCon() public payable {
-        callToContract2(p_contract);
     }
 }
