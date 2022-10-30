@@ -10,7 +10,7 @@ pragma solidity >=0.7.0 <0.9.0;
 contract BlackJack {
     address _contract = address(this);
     address _player = msg.sender;
-    uint256 _pBet = 10;
+    uint256 _pBet;
     string _dMsg;
     address payable p_player = payable(_player);
     address payable p_contract = payable(_contract);
