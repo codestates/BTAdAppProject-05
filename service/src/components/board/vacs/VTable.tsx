@@ -20,9 +20,9 @@ function VTable({ step, dealerCards, userCards, dealerScore, userScore }: VTable
         <span className="score">score: {dealerScore}</span>
         {dealerCards.map((info, i) => {
           if (step !== 'REVEAL' && i === dealerCards.length - 1) {
-            return <VCard cssProps={cardModifierCss(false)} isBack />;
+            return <VCard key={i} cssProps={cardModifierCss(false)} isBack />;
           }
-          return <VCard cssProps={cardModifierCss(false)} info={info} />;
+          return <VCard key={i} cssProps={cardModifierCss(false)} info={info} />;
         })}
       </section>
       <section css={centerAreaCss}>
@@ -31,7 +31,7 @@ function VTable({ step, dealerCards, userCards, dealerScore, userScore }: VTable
       <section css={userZoneCss}>
         <span className="score">score: {userScore}</span>
         {userCards.map(info => (
-          <VCard cssProps={cardModifierCss(true)} info={info} />
+          <VCard key={info.face + info.suit} cssProps={cardModifierCss(true)} info={info} />
         ))}
       </section>
     </div>
