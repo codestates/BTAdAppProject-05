@@ -10,6 +10,9 @@ pragma solidity >=0.7.0 <0.9.0;
 contract BlackJack {
     uint deckSize = 52;
     uint[] deck;
+    uint[] dealerCards;
+    uint[] playerCards;
+    event completeShuffle(string result, string message);
 
     function createDeck() public returns(uint[] memory){
         for (uint i = 0; i < deckSize; i++){
@@ -25,21 +28,31 @@ contract BlackJack {
             deck[n] = deck[i];
             deck[i] = temp;
         }
+
+        for (uint i = 0; i < 6; i++) {
+            uint card = deck[deck.length - 1];
+            deck.pop();
+            playerCards.push(card);
+        }
+
+        for (uint i = 6; i < 12; i++) {
+            uint card = deck[deck.length - 1];
+            deck.pop();
+            dealerCards.push(card);
+        }
+
+        emit completeShuffle("success", "Card Deck is Ready!");
+    }   
+
+    function getDealerCards() public view returns (uint[] memory){
+        return dealerCards;
     }
 
-    // function getPlayerCards() public view returns (uint[] memory){
-    //     uint[] memory playerCards;
-    //     for (uint i = 0; i < 6; i++) {
-    //         playerCards[i] = deck[i];
-    //     }
-    //     return playerCards;
-    // }
+    function getPlayerCards() public view returns (uint[] memory){
+        return playerCards;
+    }
 
-    // function getDealerCards() public view returns (uint[] memory){
-    //     uint[] memory dealerCards;
-    //     for (uint i = 0; i < 6; i++) {
-    //         dealerCards[i] = deck[i];
-    //     }
-    //     return dealerCards;
-    // }
+    function getDeck() public view returns (uint[] memory){
+        return deck;
+    }
 }
