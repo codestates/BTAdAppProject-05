@@ -3,13 +3,19 @@ import VTable from '@/components/board/vacs/VTable';
 import { css, Theme } from '@emotion/react';
 import VChipBundle from '@/components/board/vacs/VChipBundle';
 import VChips from '@/components/board/vacs/VChips';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Card, checkScoreResult, getCard, getScore } from '@/components/board/utils/card';
-import { DUMMY_CARDS } from '@/dummy/test';
+import { useWeb3React } from '@web3-react/core';
+import { injected } from '@/App';
+import { WALLET_ERROR, WalletError } from '@/constants/errorCode';
+import Web3 from 'web3';
+import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/constants/contract';
+import { Contract } from 'web3-eth-contract';
+import { BallTriangle } from 'react-loader-spinner';
 
-export type Step = 'BET' | 'DISPENSING' | 'SELECT' | 'REVEAL';
+export type Step = 'BET' | 'DISPENSING' | 'SELECT' | 'REVEAL' | 'LOADING';
 
-const ETHER_UNIT = 'Gwei';
+const ETHER_UNIT = 'ETH';
 
 // TODO: 개발 완료 후 아래 eslint 다시 활성화
 /*eslint-disable*/
@@ -22,8 +28,12 @@ function Home() {
   const [userCards, setUserCards] = useState<Card[]>([]);
   const dealerScore = useMemo(() => getScore(dealerCards, step !== 'REVEAL'), [dealerCards, step]);
   const userScore = useMemo(() => getScore(userCards), [userCards]);
-  console.log(dealerDeck, userDeck);
-
+  const {
+    account,
+    activate,
+  } = useWeb3React();
+  const [contract, setContract] = useState<Contract | null>(null);
+  const accountRef = useRef<string | null | undefined>(null);
 
   const restart = () => {
     setBettingCount(1);
@@ -34,10 +44,14 @@ function Home() {
     setUserCards([]);
   }
 
+  useEffect(() => {
+    accountRef.current = account;
+  }, [account])
+
   const handleChipBundleClick = () => {
     if (step !== 'BET') return;
     if (bettingCount > 10) {
-      alert('게임 한 판당 베팅 금액은 100을 초과할 수 없습니다.');
+      alert('게임 한 판당 베팅 금액은 1 ETH 을 초과할 수 없습니다.');
       return;
     }
     setBettingCount(prev => prev + 1);
@@ -48,15 +62,54 @@ function Home() {
     setBettingCount(prev => prev - 1);
   };
 
-  const handleBettingBtnClick = () => {
+  const handleBettingBtnClick = async() => {
     if (bettingCount === 0) {
       alert('칩을 이용해 배팅 금액을 설정해주세요.');
       return;
     }
-    if (confirm(`${bettingCount * 10} ${ETHER_UNIT} 만큼 베팅하여 게임을 시작하시겠습니까?`)) {
-      setStep('DISPENSING');
-      const dealerDeck = DUMMY_CARDS.DEALER.map(getCard);
-      const userDeck = DUMMY_CARDS.USER.map(getCard);
+    if (confirm(`${bettingCount * 0.1} ${ETHER_UNIT} 만큼 베팅하여 게임을 시작하시겠습니까?`)) {
+      try {
+        setStep('LOADING');
+        await connectMetaMask();
+        const contract = connectContract();
+        setContract(contract);
+        setTimeout(() => bet(contract), 1000);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
+  const connectContract = () => {
+    const web3 = new Web3((window as any).web3.currentProvider);
+    const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+    setContract(contract);
+    return contract;
+  }
+
+  const connectMetaMask = () => {
+    return activate(injected, (error) => {
+        const typedError = error as unknown as WalletError;
+        if (error.name === 'NoEthereumProviderError') {
+          alert('메타마스크 지갑을 설치해주세요.');
+          window.open('https://metamask.io/download.html', '_blank');
+          throw new Error('메타마스크를 설치하여야 합니다.')
+        }
+        if (typedError.code === WALLET_ERROR.USER_REJECT) {
+          alert('지갑 연결이 취소되었습니다.');
+          throw new Error('사용자가 지갑 연결을 취소하였습니다.');
+        }
+        console.log('error');
+      })
+  }
+
+  const bet = async (contract: Contract) => {
+    try {
+      const account = accountRef.current;
+      await contract.methods.playBlackJack().send({ from: account, value: Web3.utils.toWei((bettingCount * 10000000).toString(), 'Gwei')});
+      const dealerDeck = (await contract.methods.getDealerCards(account).call()).map(getCard);
+      const userDeck = (await contract.methods.getPlayerCards(account).call()).map(getCard);
+      console.log(dealerDeck, userDeck);
       Array(2).fill(0).forEach(() => {
         setDealerCards(prev => [...prev, dealerDeck.pop()!]);
         setUserCards(prev => [...prev, userDeck.pop()!]);
@@ -64,6 +117,15 @@ function Home() {
       setDealerDeck(dealerDeck);
       setUserDeck(userDeck);
       setStep('SELECT');
+    } catch (error) {
+      const typedError = error as unknown as WalletError;
+      if (typedError.code === WALLET_ERROR.USER_REJECT) {
+        alert('서명을 취소하셨습니다. 재시작합니다.');
+        restart();
+        return;
+      }
+      alert(error);
+      console.error(error);
     }
   }
 
@@ -72,8 +134,8 @@ function Home() {
     const newDealerCards = [...dealerCards, currentDealerDeck.pop()!];
     setDealerCards(newDealerCards);
     setDealerDeck(currentDealerDeck);
-    setTimeout(() => {
-      if (checkIsFinishedInOpeningDealerCard(newDealerCards)) {
+    setTimeout(async () => {
+      if (await checkIsFinishedInOpeningDealerCard(newDealerCards)) {
         restart();
         return;
       }
@@ -81,7 +143,7 @@ function Home() {
     }, 1000) // 애니메이션 시간
   }
 
-  const checkIsFinishedInOpeningDealerCard = (dealerCards: Card[]) => {
+  const checkIsFinishedInOpeningDealerCard = async (dealerCards: Card[]) => {
     const dealerResult = checkScoreResult(dealerCards, true, userScore);
     if (dealerResult === 'BLACKJACK') {
       alert("LOSE! :: Dealer's BLACKJACK");
@@ -89,10 +151,12 @@ function Home() {
     }
     if (dealerResult === 'BURST') {
       alert("WIN! :: Dealer's BURST");
+      await sendRewardToUser();
       return 1;
     }
     if (dealerResult === 'LOSE') {
       alert("WIN!");
+      await sendRewardToUser();
       return 1;
     }
     if (dealerResult === 'WIN') {
@@ -102,11 +166,31 @@ function Home() {
     return 0;
   }
 
+  const sendRewardToUser = async () => {
+    const errorAlertMsg = `상금을 드리는 과정에 오류가 있습니다. 이 문구를 캡처하여 증빙을 남겨주십시오.\n베팅금액: ${bettingCount * 0.1}ETH`;
+    if (!contract) {
+      alert(errorAlertMsg);
+      return;
+    }
+    alert(`승리하여 베팅금액의 두 배인 ${bettingCount * 0.2}ETH 금액을 지갑으로 전송하기 위해 서명을 해주십시오.\n서명 후 지갑을 확인하여 전송받은 금액을 확인해주세요.`);
+    try {
+      await contract!.methods.callContractToWinnerUser('0xFA629b7aa4272d683c7e22E5be5a485B157dC2ff').send({from: '0xFA629b7aa4272d683c7e22E5be5a485B157dC2ff'});
+    } catch (error) {
+      const typedError = error as unknown as WalletError;
+      if (typedError.code === WALLET_ERROR.USER_REJECT) {
+        alert('서명을 취소하셨습니다. 재시작합니다.');
+        restart();
+        return;
+      }
+      alert(error);
+      console.error(error);
+    }
+  }
 
   const handleStayBtnClick = () => {
     setStep('REVEAL');
-    setTimeout(() => {
-      if (checkIsFinishedInOpeningDealerCard(dealerCards)) {
+    setTimeout(async () => {
+      if (await checkIsFinishedInOpeningDealerCard(dealerCards)) {
         restart();
         return;
       }
@@ -120,10 +204,11 @@ function Home() {
     const newUserCards = [...userCards, currentUserDeck.pop()!];
     setUserCards(newUserCards)
     setUserDeck(currentUserDeck);
-    setTimeout(() => {
+    setTimeout(async () => {
       const userResult = checkScoreResult(newUserCards);
       if (userResult === 'BLACKJACK') {
         alert('BLACKJACK!');
+        await sendRewardToUser();
         restart();
         return;
       }
@@ -135,7 +220,6 @@ function Home() {
       setStep('SELECT');
     }, 1000) // 애니메이션 시간
   }
-
 
   return (
     <div css={homeWrapCss}>
@@ -163,6 +247,10 @@ function Home() {
             switch (step) {
               case 'BET':
                 return <button css={buttonCss} onClick={handleBettingBtnClick}>BETTING</button>;
+              case 'LOADING':
+                return <button css={(theme) => buttonCss(theme, true)}>
+                  <BallTriangle ariaLabel="loading-indicator" color={'#fff'} width={40} height={40}/>
+                </button>
               case 'SELECT':
                 return <>
                   <button css={buttonCss} onClick={handleStayBtnClick}>STAY</button>
@@ -248,7 +336,10 @@ const buttonWrapCss = css`
   gap: 20px;
 `
 
-const buttonCss = (theme: Theme) => css`
+const buttonCss = (theme: Theme, isHoverDisabled: boolean = false) => css`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 210px;
   height: 63px;
   background-color: ${theme.color.black300};
@@ -257,9 +348,11 @@ const buttonCss = (theme: Theme) => css`
   font-size: 32px;
   border-radius: 20px;
   
-  &:hover {
-    background-color: ${theme.color.black600};
-  }
+  ${!isHoverDisabled && `
+    &:hover {
+      background-color: ${theme.color.black600};
+    }
+  `}
 `
 
 export default Home;

@@ -6,7 +6,7 @@ interface VChipProps {
   amount?: number;
 }
 
-function VChip({ cssProps, amount = 10 }: VChipProps) {
+function VChip({ cssProps, amount = 0.01 }: VChipProps) {
   return (
     <span css={[chipCss, cssProps]}>
       <span>{amount}</span>
@@ -33,8 +33,9 @@ const chipCss = (theme: Theme) => css`
   & > span {
     color: ${theme.color.black900};
     position: absolute;
-    top: 28px;
-    font-size: 20px;
+    top: 30px;
+    transform: translate(-1px);
+    font-size: 18px;
   }
 `;
 
